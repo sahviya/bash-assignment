@@ -2,31 +2,58 @@
 
 # -----------------------------------------
 # Script Name: q3_log_analyzer.sh
-# Purpose: Analyze a log file and show statistics
+# Purpose: Analyze web server log file
 # -----------------------------------------
 
-echo "Enter the log file path:"
-read logfile
-
-# Check if file exists
-if [ ! -f "$logfile" ]; then
-    echo "File does not exist!"
+# Check if argument is provided
+if [ $# -ne 1 ]; then
+    echo "Usage: ./q3_log_analyzer.sh <logfile>"
     exit 1
 fi
 
-echo "===== LOG ANALYSIS ====="
+LOGFILE=$1
 
-# Total lines
-echo "Total Lines: $(wc -l < "$logfile")"
+# Check if file exists
+if [ ! -f "$LOGFILE" ]; then
+    echo "Error: File does not exist."
+    exit 1
+fi
 
-# Count of errors
-echo "Error Count: $(grep -i "error" "$logfile" | wc -l)"
+# Check if file is empty
+if [ ! -s "$LOGFILE" ]; then
+    echo "Error: Log file is empty."
+    exit 1
+fi
 
-# Count of warnings
-echo "Warning Count: $(grep -i "warning" "$logfile" | wc -l)"
+echo "=== LOG FILE ANALYSIS ==="
+echo "Log File: $LOGFILE"
+
+# Total entries
+TOTAL=$(wc -l < "$LOGFILE")
+echo "Total Entries: $TOTAL"
 
 # Unique IP addresses
+echo ""
 echo "Unique IP Addresses:"
-grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' "$logfile" | sort | uniq | wc -l
+awk '{print $1}' "$LOGFILE" | sort | uniq | tee /tmp/ip_list.txt
+UNIQUE_COUNT=$(wc -l < /tmp/ip_list.txt)
+echo "Total Unique IPs: $UNIQUE_COUNT"
 
-echo "===== END ====="
+# Status code summary
+echo ""
+echo "Status Code Summary:"
+awk '{print $9}' "$LOGFILE" | sort | uniq -c | awk '{print $2": "$1" requests"}'
+
+# Most frequently accessed page
+echo ""
+echo "Most Frequently Accessed Page:"
+awk '{print $7}' "$LOGFILE" | sort | uniq -c | sort -nr | head -1
+
+# Top 3 IPs
+echo ""
+echo "Top 3 IP Addresses:"
+awk '{print $1}' "$LOGFILE" | sort | uniq -c | sort -nr | head -3 | \
+awk '{print NR". "$2" - "$1" requests"}'
+
+echo ""
+echo "=== END OF REPORT ==="
