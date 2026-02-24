@@ -2,55 +2,98 @@
 
 # -----------------------------------------
 # Script Name: q2_file_manager.sh
-# Purpose: Menu-driven File & Directory Manager
+# Purpose: Advanced File & Directory Manager
 # -----------------------------------------
 
 while true
 do
-    echo "===== FILE MANAGER ====="
-    echo "1. Create File"
-    echo "2. Delete File"
-    echo "3. Create Directory"
-    echo "4. Delete Directory"
-    echo "5. List Files"
-    echo "6. Exit"
+    echo "================================="
+    echo "      FILE & DIRECTORY MANAGER"
+    echo "================================="
+    echo "1. List files in current directory"
+    echo "2. Create a new directory"
+    echo "3. Create a new file"
+    echo "4. Delete a file"
+    echo "5. Rename a file"
+    echo "6. Search for a file"
+    echo "7. Count files and directories"
+    echo "8. Exit"
     echo "Enter your choice:"
     read choice
 
     case $choice in
+
         1)
-            echo "Enter file name:"
-            read filename
-            touch "$filename"
-            echo "File created successfully."
+            echo "Listing files..."
+            ls -lh
             ;;
+
         2)
-            echo "Enter file name to delete:"
-            read filename
-            rm -i "$filename"
-            ;;
-        3)
             echo "Enter directory name:"
             read dirname
-            mkdir "$dirname"
-            echo "Directory created successfully."
+            if [ -d "$dirname" ]; then
+                echo "Directory already exists!"
+            else
+                mkdir "$dirname"
+                echo "Directory created successfully."
+            fi
             ;;
+
+        3)
+            echo "Enter file name:"
+            read filename
+            if [ -f "$filename" ]; then
+                echo "File already exists!"
+            else
+                touch "$filename"
+                echo "File created successfully."
+            fi
+            ;;
+
         4)
-            echo "Enter directory name to delete:"
-            read dirname
-            rm -r "$dirname"
+            echo "Enter file name to delete:"
+            read filename
+            if [ -f "$filename" ]; then
+                rm -i "$filename"
+            else
+                echo "File does not exist!"
+            fi
             ;;
+
         5)
-            echo "Files in current directory:"
-            ls -l
+            echo "Enter old file name:"
+            read oldname
+            if [ -f "$oldname" ]; then
+                echo "Enter new file name:"
+                read newname
+                mv "$oldname" "$newname"
+                echo "File renamed successfully."
+            else
+                echo "File does not exist!"
+            fi
             ;;
+
         6)
-            echo "Exiting File Manager..."
+            echo "Enter file name pattern to search:"
+            read pattern
+            find . -name "*$pattern*"
+            ;;
+
+        7)
+            echo "Counting files and directories..."
+            echo "Files: $(find . -type f | wc -l)"
+            echo "Directories: $(find . -type d | wc -l)"
+            ;;
+
+        8)
+            echo "Exiting..."
             break
             ;;
+
         *)
-            echo "Invalid choice. Try again."
+            echo "Invalid choice! Please enter 1-8."
             ;;
+
     esac
 
     echo ""
